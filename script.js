@@ -453,7 +453,8 @@ function exportEmails() {
         return;
     }
 
-    const exportText = exportData.join('\n');
+    const header = "Email;CNPJ;Razao Social";
+    const exportText = [header, ...exportData].join('\n');
     const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
