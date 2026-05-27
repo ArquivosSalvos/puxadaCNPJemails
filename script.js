@@ -435,9 +435,14 @@ function exportEmails() {
             const razaoSocial = empresa.company?.name || '';
             if (!/^\d{2}\.\d{3}\.\d{3}/.test(razaoSocial)) return false;
 
-            // FILTRO 1: Exclui CNPJs que tenham ".com.br" no email
+            // FILTRO 1: Exclui CNPJs que tenham ".com.br" no email ou domínio inválido
             const email = extractEmail(empresa);
             if (email === 'N/A' || email.toLowerCase().includes('.com.br')) return false;
+            
+            // Validação básica de formato de e-mail e domínio
+            // Verifica se tem @, se tem algo antes e depois, e se o domínio tem pelo menos um ponto
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) return false;
 
             return true;
         })
