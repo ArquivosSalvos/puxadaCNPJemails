@@ -439,18 +439,25 @@ function exportEmails() {
             const email = extractEmail(empresa);
             if (email === 'N/A' || email.toLowerCase().includes('.com.br')) return false;
             
-            // Validação básica de formato de e-mail e domínio
-            // Verifica se tem @, se tem algo antes e depois, e se o domínio tem pelo menos um ponto
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            // Validação rigorosa de e-mail para Mailchimp
+            // 1. Não pode ter espaços
+            if (/\s/.test(email)) return false;
+
+            // 2. Formato básico usuario@dominio.com
+            const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
             if (!emailRegex.test(email)) return false;
+
+            // 3. Evita e-mails baseados em funções (vendas@, contato@, etc) que o Mailchimp bloqueia
+            const roleEmails = ['vendas@', 'contato@', 'admin@', 'suporte@', 'info@', 'comercial@', 'atendimento@'];
+            if (roleEmails.some(role => email.toLowerCase().startsWith(role))) return false;
 
             return true;
         })
         .map(empresa => {
             const email = extractEmail(empresa);
             const cnpj = formatarCNPJ(empresa.taxId || 'N/A');
-            const razaoSocial = empresa.company?.name || 'N/A';
-            return `${email};{{{${cnpj}}};{{${razaoSocial}}}`;
+            const razaoSocial = (empresa.company?.name || 'N/A').replace(/,/g, ''); // Remove vírgulas da razão social para não quebrar o CSV
+            return `${email},{{{${cnpj}}},{{${razaoSocial}}}`;
         });
 
     if (exportData.length === 0) {
@@ -458,7 +465,7 @@ function exportEmails() {
         return;
     }
 
-    const header = "Email;CNPJ;Razao Social";
+    const header = "Email,CNPJ,Razao Social";
     const exportText = [header, ...exportData].join('\n');
     const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
