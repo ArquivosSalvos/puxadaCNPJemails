@@ -443,7 +443,7 @@ function exportEmails() {
         })
         .map(empresa => {
             const email = extractEmail(empresa);
-            const cnpj = empresa.taxId || 'N/A';
+            const cnpj = formatarCNPJ(empresa.taxId || 'N/A');
             const razaoSocial = empresa.company?.name || 'N/A';
             return `${email};{{{${cnpj}}};{{${razaoSocial}}}`;
         });
